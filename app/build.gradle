@@ -5,6 +5,16 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+
+    signingConfigs {
+        config {
+            keyAlias 'keya'
+            keyPassword '123456'
+            storeFile file('last.jks')
+            storePassword '123456'
+        }
+    }
+
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
