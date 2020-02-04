@@ -4,7 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.JsonReader
 import android.util.Log
+import com.alibaba.fastjson.JSON
 
 import com.amap.api.location.AMapLocationClientOption
 import kotlinx.android.synthetic.main.activity_main.*
@@ -14,19 +16,28 @@ import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationListener
 
 import com.amap.api.maps2d.CameraUpdateFactory
+import com.amap.api.maps2d.model.LatLng
+import com.amap.api.maps2d.model.MarkerOptions
 import com.amap.api.maps2d.model.MyLocationStyle
+
+import android.graphics.BitmapFactory
+import com.amap.api.maps2d.model.BitmapDescriptorFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var location: Location
     val loacationListener = AMapLocationListener { amapLocation ->
 
         if (amapLocation != null && amapLocation.errorCode === 0) {
+            location = JSON.parseObject(JSON.toJSONString(amapLocation), Location::class.java)
+            Log.d("location_", "location:$location")
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+            location.time = format
+            Log.d("location_","format$format")
 
-        } else {
-            val errText =
-                "定位失败," + amapLocation.getErrorCode() + ": " + amapLocation.getErrorInfo()
-            Log.e("AmapErr", errText)
         }
 
     }
@@ -53,8 +64,7 @@ class MainActivity : AppCompatActivity() {
 
         map_view.map.moveCamera(CameraUpdateFactory.zoomTo(17f))
 
-        mlocationClient = AMapLocationClient(this)
-        mlocationClient?.setLocationListener(loacationListener)
+
 
 
 
@@ -62,26 +72,54 @@ class MainActivity : AppCompatActivity() {
         btn_set.setOnClickListener {
             val intent = Intent()
             intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
-            intent.setData(Uri.fromParts("package", getPackageName(), null));
+            intent.setData(Uri.fromParts("package", getPackageName(), null))
             startActivity(intent)
+        }
+        btn_addmark.setOnClickListener {
+            addMarkFromData()
         }
 
 
+    }
+
+    fun addMarkFromData() {
+
+        val markerOption = MarkerOptions()
+        markerOption.position(
+            LatLng(
+                location.latitude ?: 0.0 + 0.002,
+                location.longitude ?: 0.0 + 0.002
+            )
+        )
+//        markerOption.title(location.time).snippet(location.address)
+
+        markerOption.draggable(false)//设置Marker不可拖动
+        markerOption.icon(
+            BitmapDescriptorFactory.fromBitmap(
+                BitmapFactory
+                    .decodeResource(resources, R.drawable.mark_last)
+            )
+        )
+
+        val addMarker = map_view.map.addMarker(markerOption)
+        addMarker.position
 
     }
 
     override fun onResume() {
         super.onResume()
         map_view.onResume()
+        mlocationClient = AMapLocationClient(this)
+        mlocationClient?.setLocationListener(loacationListener)
         mlocationClient?.startLocation()
     }
 
     override fun onPause() {
         super.onPause()
         map_view.onPause()
-        if (null != mlocationClient) {
-            mlocationClient?.onDestroy()
-        }
+        mlocationClient?.unRegisterLocationListener(loacationListener)
+        mlocationClient?.onDestroy()
+
     }
 
     override fun onDestroy() {
