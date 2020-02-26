@@ -21,8 +21,22 @@
    <Button
        android:id="@+id/btn_addmark"
        android:layout_below="@+id/btn_set"
+       android:text="添加位置"
+       android:visibility="visible"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"/>
+
+   <Button
+       android:id="@+id/btn_record"
+       android:layout_below="@+id/btn_addmark"
        android:text="记录位置"
        android:visibility="visible"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"/>
+   <Button
+       android:id="@+id/btn_go"
+       android:text="导航到上次位置"
+       android:layout_below="@+id/btn_record"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"/>
 
